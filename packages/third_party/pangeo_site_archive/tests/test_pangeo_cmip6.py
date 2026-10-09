@@ -147,3 +147,12 @@ def test_load_drops_conflicting_scalar_coordinates(monkeypatch):
 
     assert set(dataset.data_vars) == {"tas", "uas"}
     assert "height" not in dataset.coords
+
+
+def test_catalog_lists_available_data():
+    catalog = PangeoCMIP6.catalog(CATALOG)
+
+    assert isinstance(catalog, pandas.DataFrame)
+    assert {"source_id", "experiment_id", "variable_id", "zstore"} <= set(catalog.columns)
+    assert set(catalog["variable_id"]) == {"tas", "pr", "psl", "uas"}
+    assert len(catalog) == 7

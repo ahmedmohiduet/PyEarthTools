@@ -107,7 +107,7 @@ class PangeoCMIP6(ArchiveIndex):
     def _load_catalog(self) -> pandas.DataFrame:
         """Read the catalog once, keeping only the rows of the requested variables and model run."""
         if self._catalog is None:
-            catalog = pandas.read_csv(self._catalog_src, usecols=_CATALOG_COLUMNS)
+            catalog = self.catalog(self._catalog_src)
             catalog = catalog[catalog["variable_id"].isin(self._variables)]
             for column, value in self._query.items():
                 catalog = catalog[catalog[column] == value]
@@ -158,6 +158,19 @@ class PangeoCMIP6(ArchiveIndex):
         open_args = {**self._OPEN_ARGS, **kwargs}
         datasets = [xarray.open_zarr(url, **open_args)[[variable]] for variable, url in files.items()]
         return xarray.merge(datasets, join="exact", compat="minimal")
+
+    @staticmethod
+    def catalog(catalog: str | os.PathLike = DEFAULT_CATALOG) -> pandas.DataFrame:
+        """Return the Pangeo CMIP6 catalogue, so the available data can be discovered.
+
+        Args:
+            catalog: CSV catalogue to read. Defaults to the public Pangeo CMIP6 catalogue.
+
+        Returns:
+            DataFrame with one row per variable of one model run, with the columns `source_id`,
+            `experiment_id`, `member_id`, `table_id`, `variable_id`, `grid_label`, `zstore` and `version`.
+        """
+        return pandas.read_csv(catalog, usecols=_CATALOG_COLUMNS)
 
     def exists(self, *args, **kwargs) -> bool:
         """Whether a store is found for every variable. Stores are URLs, so they are not checked on disk."""
