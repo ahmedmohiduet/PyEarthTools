@@ -102,6 +102,11 @@ def test_exists_does_not_check_the_disk():
     assert _index(["nonsense"]).exists(TIME) is False
 
 
+def test_exists_accepts_querytime_keyword():
+    assert _index(["tas"]).exists(querytime=TIME) is True
+    assert _index(["nonsense"]).exists(querytime=TIME) is False
+
+
 def test_get_wraps_lookup_errors():
     with pytest.raises(pyearthtools.data.DataNotFoundError):
         _index(["nonsense"]).get(TIME)

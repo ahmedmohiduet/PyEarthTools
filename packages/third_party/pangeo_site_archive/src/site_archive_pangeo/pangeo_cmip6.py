@@ -172,10 +172,10 @@ class PangeoCMIP6(ArchiveIndex):
         """
         return pandas.read_csv(catalog, usecols=_CATALOG_COLUMNS)
 
-    def exists(self, *args, **kwargs) -> bool:
+    def exists(self, querytime: str | Petdt) -> bool:
         """Whether a store is found for every variable. Stores are URLs, so they are not checked on disk."""
         try:
-            self.search(*args)
+            self.search(querytime)
         except ValueError:
             return False
         return True
