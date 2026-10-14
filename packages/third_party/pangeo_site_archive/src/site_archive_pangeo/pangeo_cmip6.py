@@ -6,6 +6,7 @@ per variable and described by a single catalog CSV.
 """
 
 import os
+import warnings
 from typing import Any, ClassVar
 
 import pandas
@@ -122,7 +123,8 @@ class PangeoCMIP6(ArchiveIndex):
             querytime: Ignored, as a store holds all times.
 
         Raises:
-            ValueError: If a variable has no store, or exists on several grids and no ``grid_label`` was given.
+            ValueError: If a variable has no store, exists on several grids and no ``grid_label`` was given,
+                or has several stores at its latest version.
 
         Returns:
             Store URL of each variable, using the latest version in the catalog.
@@ -140,7 +142,13 @@ class PangeoCMIP6(ArchiveIndex):
                 raise ValueError(
                     f"Variable {variable!r} exists on several grids {grids}; pass grid_label to choose one."
                 )
-            stores[variable] = str(rows.sort_values("version").iloc[-1]["zstore"])
+            latest = rows[rows["version"] == rows["version"].max()]
+            urls = sorted(latest["zstore"].unique())
+            if len(urls) > 1:
+                raise ValueError(
+                    f"Variable {variable!r} has several stores at the latest version {urls}; the run is ambiguous."
+                )
+            stores[variable] = str(urls[0])
         return stores
 
     def load(self, files: dict[str, str], **kwargs) -> xarray.Dataset:
@@ -158,6 +166,23 @@ class PangeoCMIP6(ArchiveIndex):
         open_args = {**self._OPEN_ARGS, **kwargs}
         datasets = [xarray.open_zarr(url, **open_args)[[variable]] for variable, url in files.items()]
         return xarray.merge(datasets, join="exact", compat="minimal")
+
+    def retrieve(self, querytime: str | Petdt, *args, **kwargs) -> xarray.Dataset:
+        """
+        Retrieve the data at ``querytime``.
+
+        Raises:
+            DataNotFoundError: If the store holds no data at ``querytime``. Without this, the parent class
+                only warns and returns every time of the store.
+        """
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            data = super().retrieve(querytime, *args, **kwargs)
+        for warning in caught:
+            if "Could not find time in dataset" in str(warning.message):
+                raise pyearthtools.data.DataNotFoundError(f"No data found at {querytime}.")
+            warnings.warn_explicit(warning.message, warning.category, warning.filename, warning.lineno)
+        return data
 
     @staticmethod
     def catalog(catalog: str | os.PathLike = DEFAULT_CATALOG) -> pandas.DataFrame:
