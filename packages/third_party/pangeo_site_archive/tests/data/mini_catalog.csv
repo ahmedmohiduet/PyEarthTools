@@ -6,3 +6,5 @@ CMIP,TEST-INST,TEST-MODEL,historical,r1i1p1f1,Amon,psl,gn,gs://test-bucket/psl/g
 CMIP,TEST-INST,TEST-MODEL,historical,r1i1p1f1,Amon,psl,gr,gs://test-bucket/psl/gr/v20190101/,,20190101
 ScenarioMIP,TEST-INST,TEST-MODEL,ssp585,r1i1p1f1,Amon,tas,gn,gs://test-bucket/ssp/tas/gn/v20190101/,,20190101
 CMIP,TEST-INST,TEST-MODEL,historical,r1i1p1f1,Amon,uas,gn,gs://test-bucket/uas/gn/v20190101/,,20190101
+DCPP,TEST-INST,AMBIG-MODEL,dcppA-hindcast,r1i1p1f1,Amon,tas,gn,gs://test-bucket/ambig/tas/gn/init1960/,1960,20190101
+DCPP,TEST-INST,AMBIG-MODEL,dcppA-hindcast,r1i1p1f1,Amon,tas,gn,gs://test-bucket/ambig/tas/gn/init1961/,1961,20190101

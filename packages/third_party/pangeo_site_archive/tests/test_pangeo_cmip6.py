@@ -160,4 +160,23 @@ def test_catalog_lists_available_data():
     assert isinstance(catalog, pandas.DataFrame)
     assert {"source_id", "experiment_id", "variable_id", "zstore"} <= set(catalog.columns)
     assert set(catalog["variable_id"]) == {"tas", "pr", "psl", "uas"}
-    assert len(catalog) == 7
+    assert len(catalog) == 9
+
+
+def test_ambiguous_runs_at_latest_version_are_rejected():
+    index = _index(["tas"], source_id="AMBIG-MODEL", experiment_id="dcppA-hindcast")
+    with pytest.raises(ValueError, match="several stores"):
+        index.filesystem(TIME)
+
+
+def test_ambiguous_runs_at_latest_version_are_rejected():
+    index = _index(["tas"], source_id="AMBIG-MODEL", experiment_id="dcppA-hindcast")
+    with pytest.raises(ValueError, match="several stores"):
+        index.filesystem(TIME)
+
+
+def test_retrieve_outside_the_store_times_raises(monkeypatch):
+    monkeypatch.setattr(xarray, "open_zarr", _fake_open_zarr({}))
+
+    with pytest.raises(pyearthtools.data.DataNotFoundError):
+        _index(["tas"]).retrieve("1990-01")
